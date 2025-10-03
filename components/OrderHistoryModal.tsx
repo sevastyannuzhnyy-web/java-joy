@@ -67,7 +67,7 @@ const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({ isOpen, onClose, 
                                         <p className="text-sm text-gray-500">R${formatTotal(order.total)}</p>
                                     </div>
                                     <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-3">
-                                        <span>{order.payment_method === 'pix' ? t.payWithPix : t.payAtCounter}</span>
+                                        <span>{t.payWithPix}</span>
                                     </div>
                                     <p className="text-xs text-gray-500">{t.orderDate} {formatDate(createdAt)}</p>
                                 </div>

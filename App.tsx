@@ -1,7 +1,6 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Cart, MenuItem, CartItem, OrderHistoryEntry, OrderType, DeliveryDetails } from './types';
-import type { PaymentMethod } from './src/lib/createOrder';
 import { translations } from './constants';
 import HeroScreen from './components/HeroScreen';
 import Menu from './components/Menu';
@@ -25,7 +24,6 @@ const App: React.FC = () => {
     const [orderType, setOrderType] = useState<OrderType>('pickup');
     const [deliveryDetails, setDeliveryDetails] = useState<DeliveryDetails | undefined>(undefined);
     const [lastOrderTotal, setLastOrderTotal] = useState<number>(0);
-    const [completedPaymentMethod, setCompletedPaymentMethod] = useState<PaymentMethod | null>(null);
     
     const t = translations[language];
 
@@ -108,7 +106,6 @@ const App: React.FC = () => {
         setOrderType('pickup');
         setDeliveryDetails(undefined);
         setOrderId(null);
-        setCompletedPaymentMethod(null);
         setScreen('payment');
     };
 
@@ -116,14 +113,12 @@ const App: React.FC = () => {
         setOrderType('delivery');
         setDeliveryDetails(details);
         setOrderId(null);
-        setCompletedPaymentMethod(null);
         setScreen('payment');
     };
     
-    const handleOrderSuccess = (payload: { orderId: string | number; total: number; paymentMethod: PaymentMethod }) => {
+    const handleOrderSuccess = (payload: { orderId: string | number; total: number }) => {
         setOrderId(payload.orderId);
         setLastOrderTotal(payload.total);
-        setCompletedPaymentMethod(payload.paymentMethod);
         setCart({});
         syncOrderHistory();
     };
@@ -131,7 +126,6 @@ const App: React.FC = () => {
     const handleNewOrder = () => {
         setOrderId(null);
         setLastOrderTotal(0);
-        setCompletedPaymentMethod(null);
         setDeliveryDetails(undefined);
         setOrderType('pickup');
         setCart({});
@@ -199,7 +193,6 @@ const App: React.FC = () => {
                     t={t}
                     orderType={orderType}
                     deliveryDetails={deliveryDetails}
-                    completedPaymentMethod={completedPaymentMethod}
                 />
             )}
         </>

@@ -1,17 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { DeliveryDetails, OrderType, CartItem as AppCartItem } from '../types';
-import { createOrder, type CartItem as OrderCartItem, type PaymentMethod } from '../src/lib/createOrder';
+import { createOrder, type CartItem as OrderCartItem } from '../src/lib/createOrder';
 
 interface PaymentScreenProps {
   cartItems: AppCartItem[];
   totalPrice: number;
   orderId: string | number | null;
-  onOrderSuccess: (payload: { orderId: string | number; total: number; paymentMethod: PaymentMethod }) => void;
+  onOrderSuccess: (payload: { orderId: string | number; total: number }) => void;
   onNewOrder: () => void;
   t: any;
   orderType: OrderType;
   deliveryDetails?: DeliveryDetails;
-  completedPaymentMethod: PaymentMethod | null;
 }
 
 const PIX_KEY = 'xxxxxxxxxx';
@@ -25,9 +24,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({
   t,
   orderType,
   deliveryDetails,
-  completedPaymentMethod,
 }) => {
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [copyButtonText, setCopyButtonText] = useState(t.copyKey);
@@ -36,8 +33,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({
   }, [t.copyKey]);
 
   const numericTotal = useMemo(() => Number(totalPrice), [totalPrice]);
-  const effectivePaymentMethod = orderId ? completedPaymentMethod ?? paymentMethod : paymentMethod;
-  const showPixDetails = effectivePaymentMethod === 'pix';
+  const showPixDetails = true;
 
   const placeOrderDisabled =
     isSubmitting || orderId !== null || !cartItems.length || !Number.isFinite(numericTotal) || numericTotal <= 0;
@@ -76,9 +72,9 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({
           : undefined,
       }));
 
-      const result = await createOrder(orderItems, numericTotal, paymentMethod);
+      const result = await createOrder(orderItems, numericTotal);
 
-      onOrderSuccess({ orderId: result.id, total: numericTotal, paymentMethod });
+      onOrderSuccess({ orderId: result.id, total: numericTotal });
     } catch (e: any) {
       const msg = e?.message || e?.error_description || e?.hint || JSON.stringify(e);
       setErrorMsg(msg);
@@ -160,38 +156,6 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({
 
         {!orderId && (
           <div className="mt-6 flex flex-col items-center space-y-5">
-            <fieldset className="w-full max-w-xs text-left">
-              <legend className="text-sm font-semibold text-gray-700 mb-2">{t.paymentQuestion}</legend>
-              <div className="space-y-2">
-                <label className={`flex items-center justify-between px-4 py-3 rounded-lg border ${
-                  paymentMethod === 'cash' ? 'border-amber-500 bg-white' : 'border-transparent bg-white/70'
-                } cursor-pointer transition`}
-                >
-                  <span className="font-medium text-gray-800">{t.payAtCounter}</span>
-                  <input
-                    type="radio"
-                    name="payment-method"
-                    value="cash"
-                    checked={paymentMethod === 'cash'}
-                    onChange={() => setPaymentMethod('cash')}
-                  />
-                </label>
-                <label className={`flex items-center justify-between px-4 py-3 rounded-lg border ${
-                  paymentMethod === 'pix' ? 'border-amber-500 bg-white' : 'border-transparent bg-white/70'
-                } cursor-pointer transition`}
-                >
-                  <span className="font-medium text-gray-800">{t.payWithPix}</span>
-                  <input
-                    type="radio"
-                    name="payment-method"
-                    value="pix"
-                    checked={paymentMethod === 'pix'}
-                    onChange={() => setPaymentMethod('pix')}
-                  />
-                </label>
-              </div>
-            </fieldset>
-
             <button
               type="button"
               onClick={handlePlaceOrder}
