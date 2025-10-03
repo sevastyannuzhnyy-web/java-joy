@@ -10,10 +10,9 @@ interface CartModalProps {
     onCheckout: () => void;
     totalPrice: number;
     t: any;
-    isSubmitting: boolean;
 }
 
-const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cart, onQuantityChange, onCheckout, totalPrice, t, isSubmitting }) => {
+const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cart, onQuantityChange, onCheckout, totalPrice, t }) => {
     const cartItems = Object.values(cart);
     const hasItems = cartItems.length > 0;
 
@@ -67,10 +66,9 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cart, onQuantity
                     <button 
                         onClick={onCheckout}
                         className="w-full vintage-btn py-3 mt-4 rounded-lg font-semibold text-lg" 
-                        disabled={!hasItems || isSubmitting}
-                        aria-busy={isSubmitting}
+                        disabled={!hasItems}
                     >
-                        {isSubmitting ? 'Processing...' : t.checkout}
+                        {t.checkout}
                     </button>
                 </div>
             </div>

@@ -42,9 +42,8 @@ export interface DeliveryDetails {
 }
 
 export interface OrderHistoryEntry {
-  id: number;
+  id: number | string;
   total: number | string;
-  status: string;
-  createdAt: string;
   payment_method: 'cash' | 'pix';
+  created_at: string;
 }

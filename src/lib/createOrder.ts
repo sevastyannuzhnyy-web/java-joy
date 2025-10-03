@@ -1,54 +1,70 @@
 import { supabase } from './supabase'
 
-export type CartItem = { id: string; qty: number; name?: string; price?: number }
+export type CartItem = {
+  id: string
+  name: string
+  qty: number
+  price: number
+  options?: unknown
+}
+
+export type PaymentMethod = 'cash' | 'pix'
+
+function getDeviceId() {
+  const key = 'jj_device_id'
+  let value = localStorage.getItem(key)
+  if (!value) {
+    value = crypto.randomUUID()
+    localStorage.setItem(key, value)
+  }
+  return value
+}
+
+function makeIdemKey(total: number, paymentMethod: PaymentMethod) {
+  const device = getDeviceId()
+  const windowBucket = Math.floor(Date.now() / 2000)
+  return `${device}:${paymentMethod}:${total}:${windowBucket}`
+}
 
 export async function createOrder(
   items: CartItem[],
-  total: number | string,
-  paymentMethod: 'cash' | 'pix'
+  total: number,
+  paymentMethod: PaymentMethod
 ) {
-  const deviceId =
-    localStorage.getItem('device_id') ||
-    (() => {
-      const id = crypto.randomUUID()
-      localStorage.setItem('device_id', id)
-      return id
-    })()
+  const device_id = getDeviceId()
+  const idempotency_key = makeIdemKey(total, paymentMethod)
 
-  const idempotencyKey = crypto.randomUUID()
-  const numericTotal = Number(total)
+  const payload = {
+    device_id,
+    items,
+    total,
+    payment_method: paymentMethod,
+    idempotency_key,
+  }
 
   const { data, error } = await supabase
     .from('orders')
-    .upsert(
-      [
-        {
-          device_id: deviceId,
-          items,
-          total: numericTotal,
-          payment_method: paymentMethod,
-          status: 'pending',
-          idempotency_key: idempotencyKey,
-        },
-      ],
-      { onConflict: 'idempotency_key' }
-    )
-    .select()
+    .upsert(payload, { onConflict: 'idempotency_key' })
+    .select('id, total, payment_method, created_at')
     .single()
 
   if (error) throw error
 
-  const key = 'orders_v1'
-  const list: any[] = JSON.parse(localStorage.getItem(key) || '[]')
-  if (!list.some((o) => o.id === data.id)) {
-    list.unshift({
+  try {
+    const historyKey = 'jj_order_history'
+    const raw = localStorage.getItem(historyKey)
+    const parsed = raw ? JSON.parse(raw) : []
+    const entries: any[] = Array.isArray(parsed) ? parsed : []
+    const filtered = entries.filter((entry) => entry?.id !== data.id)
+    filtered.unshift({
       id: data.id,
       total: data.total,
-      status: data.status,
-      createdAt: data.created_at,
       payment_method: data.payment_method,
+      created_at: data.created_at,
     })
-    localStorage.setItem(key, JSON.stringify(list.slice(0, 50)))
+    localStorage.setItem(historyKey, JSON.stringify(filtered.slice(0, 50)))
+  } catch (err) {
+    console.error('Failed to update local order history', err)
   }
 
   return data

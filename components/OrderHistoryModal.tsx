@@ -57,20 +57,22 @@ const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({ isOpen, onClose, 
                 </div>
                 <div className="space-y-6 mb-4 flex-grow overflow-y-auto">
                     {hasHistory ? (
-                        orderHistory.map((order) => (
-                            <div key={order.id} className="cart-item bg-white/50 p-4 rounded-lg">
-                                <div className="flex justify-between items-baseline mb-2">
-                                    <p className="font-bold text-xl">#{order.id}</p>
-                                    <p className="text-sm text-gray-500">R${formatTotal(order.total)}</p>
+                        orderHistory.map((order) => {
+                            const createdAt = 'created_at' in order ? order.created_at : (order as any).createdAt;
+
+                            return (
+                                <div key={order.id} className="cart-item bg-white/50 p-4 rounded-lg">
+                                    <div className="flex justify-between items-baseline mb-2">
+                                        <p className="font-bold text-xl">#{order.id}</p>
+                                        <p className="text-sm text-gray-500">R${formatTotal(order.total)}</p>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-3">
+                                        <span>{order.payment_method === 'pix' ? t.payWithPix : t.payAtCounter}</span>
+                                    </div>
+                                    <p className="text-xs text-gray-500">{t.orderDate} {formatDate(createdAt)}</p>
                                 </div>
-                                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-3">
-                                    <span className="uppercase tracking-wide">{order.status}</span>
-                                    <span>•</span>
-                                    <span>{order.payment_method === 'pix' ? t.payWithPix : t.payAtCounter}</span>
-                                </div>
-                                <p className="text-xs text-gray-500">{t.orderDate} {formatDate(order.createdAt)}</p>
-                            </div>
-                        ))
+                            );
+                        })
                     ) : (
                         <p className="text-gray-500 text-center mt-8">{t.noHistory}</p>
                     )}

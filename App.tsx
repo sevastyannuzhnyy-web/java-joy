@@ -1,7 +1,7 @@
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Cart, MenuItem, CartItem, OrderHistoryEntry, OrderType, DeliveryDetails } from './types';
-import { createOrder } from './src/lib/createOrder';
+import type { PaymentMethod } from './src/lib/createOrder';
 import { translations } from './constants';
 import HeroScreen from './components/HeroScreen';
 import Menu from './components/Menu';
@@ -20,14 +20,12 @@ const App: React.FC = () => {
     const [cart, setCart] = useState<Cart>({});
     const [isCartModalOpen, setCartModalOpen] = useState<boolean>(false);
     const [isHistoryModalOpen, setHistoryModalOpen] = useState<boolean>(false);
-    const [orderNumber, setOrderNumber] = useState<string>('');
+    const [orderId, setOrderId] = useState<string | number | null>(null);
     const [orderHistory, setOrderHistory] = useState<OrderHistoryEntry[]>([]);
     const [orderType, setOrderType] = useState<OrderType>('pickup');
     const [deliveryDetails, setDeliveryDetails] = useState<DeliveryDetails | undefined>(undefined);
-    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-    const isSubmittingRef = useRef(false);
     const [lastOrderTotal, setLastOrderTotal] = useState<number>(0);
-    const [completedPaymentMethod, setCompletedPaymentMethod] = useState<'cash' | 'pix' | null>(null);
+    const [completedPaymentMethod, setCompletedPaymentMethod] = useState<PaymentMethod | null>(null);
     
     const t = translations[language];
 
@@ -35,9 +33,21 @@ const App: React.FC = () => {
         if (typeof window === 'undefined') return;
 
         try {
-            const raw = localStorage.getItem('orders_v1');
+            const raw = localStorage.getItem('jj_order_history');
             const parsed = raw ? JSON.parse(raw) : [];
-            setOrderHistory(Array.isArray(parsed) ? (parsed as OrderHistoryEntry[]) : []);
+            if (!Array.isArray(parsed)) {
+                setOrderHistory([]);
+                return;
+            }
+
+            const normalized = parsed.map((entry) => ({
+                id: entry.id,
+                total: entry.total,
+                payment_method: entry.payment_method,
+                created_at: entry.created_at ?? entry.createdAt,
+            })) as OrderHistoryEntry[];
+
+            setOrderHistory(normalized);
         } catch (error) {
             console.error('Failed to load order history', error);
             setOrderHistory([]);
@@ -97,79 +107,34 @@ const App: React.FC = () => {
     const handleSelectPickup = () => {
         setOrderType('pickup');
         setDeliveryDetails(undefined);
-        setOrderNumber('');
+        setOrderId(null);
         setCompletedPaymentMethod(null);
-        setIsSubmitting(false);
-        isSubmittingRef.current = false;
         setScreen('payment');
     };
 
     const handleConfirmDelivery = (details: DeliveryDetails) => {
         setOrderType('delivery');
         setDeliveryDetails(details);
-        setOrderNumber('');
+        setOrderId(null);
         setCompletedPaymentMethod(null);
-        setIsSubmitting(false);
-        isSubmittingRef.current = false;
         setScreen('payment');
     };
-
-    const handlePlaceOrder = async (paymentMethod: 'cash' | 'pix') => {
-        if (isSubmittingRef.current) return;
-
-        const cartItems = Object.values(cart);
-        if (cartItems.length === 0) {
-            alert('Cart is empty');
-            return;
-        }
-
-        if (paymentMethod !== 'cash' && paymentMethod !== 'pix') {
-            alert('Select a payment method');
-            return;
-        }
-
-        const total = Number(cartTotals.totalPrice);
-        if (!Number.isFinite(total) || total <= 0) {
-            alert('Cart total is invalid');
-            return;
-        }
-
-        isSubmittingRef.current = true;
-        setIsSubmitting(true);
-
-        try {
-            const itemsForOrder = cartItems.map((item) => ({
-                id: item.id,
-                qty: item.quantity,
-                name: t.menu[item.nameKey],
-                price: item.price,
-            }));
-
-            const order = await createOrder(itemsForOrder, total, paymentMethod);
-
-            setOrderNumber(String(order.id));
-            setLastOrderTotal(total);
-            setCompletedPaymentMethod(paymentMethod);
-            setCart({});
-            syncOrderHistory();
-        } catch (e: any) {
-            const msg = e?.message || e?.error_description || e?.hint || JSON.stringify(e);
-            alert('Order error: ' + msg);
-        } finally {
-            setIsSubmitting(false);
-            isSubmittingRef.current = false;
-        }
-    };
     
+    const handleOrderSuccess = (payload: { orderId: string | number; total: number; paymentMethod: PaymentMethod }) => {
+        setOrderId(payload.orderId);
+        setLastOrderTotal(payload.total);
+        setCompletedPaymentMethod(payload.paymentMethod);
+        setCart({});
+        syncOrderHistory();
+    };
+
     const handleNewOrder = () => {
-        setOrderNumber('');
+        setOrderId(null);
         setLastOrderTotal(0);
         setCompletedPaymentMethod(null);
         setDeliveryDetails(undefined);
         setOrderType('pickup');
         setCart({});
-        setIsSubmitting(false);
-        isSubmittingRef.current = false;
         setScreen('main');
     };
 
@@ -206,7 +171,6 @@ const App: React.FC = () => {
                 onCheckout={handleCheckout}
                 totalPrice={cartTotals.totalPrice}
                 t={t}
-                isSubmitting={isSubmitting}
             />
 
             <OrderHistoryModal
@@ -227,15 +191,15 @@ const App: React.FC = () => {
 
             {screen === 'payment' && (
                 <PaymentScreen 
-                    orderNumber={orderNumber}
-                    totalPrice={orderNumber ? lastOrderTotal : cartTotals.totalPrice}
-                    isSubmitting={isSubmitting}
-                    onPlaceOrder={handlePlaceOrder}
+                    orderId={orderId}
+                    cartItems={Object.values(cart)}
+                    totalPrice={orderId ? lastOrderTotal : cartTotals.totalPrice}
+                    onOrderSuccess={handleOrderSuccess}
                     onNewOrder={handleNewOrder}
                     t={t}
                     orderType={orderType}
                     deliveryDetails={deliveryDetails}
-                    paymentMethod={completedPaymentMethod}
+                    completedPaymentMethod={completedPaymentMethod}
                 />
             )}
         </>

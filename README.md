@@ -47,6 +47,7 @@ drop policy if exists allow_insert_all on public.orders;
 drop policy if exists allow_select_all on public.orders;
 create policy allow_insert_all on public.orders for insert with check (true);
 create policy allow_select_all on public.orders for select using (true);
+create unique index if not exists orders_idem_key_idx on public.orders (idempotency_key);
 ```
 
 ## Available Scripts
