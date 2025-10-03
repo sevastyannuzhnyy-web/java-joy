@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafeteria Escolar "Java Joy"</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Roboto+Slab:wght@400;500;700&family=Source+Code+Pro:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto Slab', serif;
+            background-color: #FDF8F2; /* Cream background */
+            background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath d='M5 0h1L0 6V5zM6 5v1H5z'/%3E%3C/g%3E%3C/svg%3E");
+        }
+        h1, h2, h3 {
+             font-family: 'Lora', serif;
+        }
+        .vintage-btn {
+            background-color: #5D4037; /* Coffee */
+            color: #FFFFFF;
+            box-shadow: 2px 2px 0px 0px #A1887F; /* Retro shadow */
+            transition: all 0.1s ease-in-out;
+        }
+        .vintage-btn:hover {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px 0px #A1887F;
+        }
+        .vintage-btn:disabled {
+            background-color: #9E9E9E;
+            box-shadow: none;
+            transform: none;
+            cursor: not-allowed;
+        }
+        .menu-card {
+            background-color: #FFFBF5; /* Lighter cream */
+            border: 1px solid #D7CCC8; /* Thin border */
+        }
+        .menu-category h2 {
+            border-bottom: 1px solid #A1887F;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            color: #3E2723; /* Dark coffee */
+        }
+        .cart-item {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .cart-modal {
+            transition: transform 0.3s ease-in-out;
+            background-color: #FDF8F2;
+        }
+        .modal-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .circle-fill {
+            transition: transform 0.5s ease-out;
+            transform-origin: bottom;
+            transform: scaleY(0);
+            background-color: #795548; /* Coffee fill */
+        }
+        @keyframes steam-rise {
+            0% { transform: translateY(0) scale(1); opacity: 0.8; }
+            100% { transform: translateY(-20px) scale(1.2); opacity: 0; }
+        }
+        .steam-path {
+            animation: steam-rise 2.5s infinite ease-out;
+        }
+        .steam-path-2 {
+            animation-delay: 1.2s;
+        }
+        .receipt {
+            font-family: 'Source Code Pro', monospace;
+            animation: print-out 0.8s ease-out;
+            border-top: 2px dashed #A1887F;
+        }
+        @keyframes print-out {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="text-gray-800">
+    <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

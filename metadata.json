@@ -1,0 +1,5 @@
+{
+  "name": "Java Joy Cafeteria",
+  "description": "An online ordering system for the 'Java Joy' school cafeteria, allowing users to browse the menu, add items to a cart, and proceed to a payment screen with options to pay at the counter or via PIX.",
+  "requestFramePermissions": []
+}
