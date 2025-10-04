@@ -1,13 +1,12 @@
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import OwnerDashboard from "./components/OwnerDashboard";
-// ВАЖНО: подключаем старый красивый App из КОРНЯ проекта
-import LegacyApp from "../App";
+import MainApp from "./MainApp";
 
 export default function App() {
   return (
     <HashRouter>
       <Routes>
-        <Route path="/" element={<LegacyApp />} />
+        <Route path="/" element={<MainApp />} />
         <Route path="/admin" element={<OwnerDashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
